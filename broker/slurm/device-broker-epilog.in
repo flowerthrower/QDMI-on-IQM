@@ -1,0 +1,8 @@
+#!/bin/sh
+
+DEVICE_BROKER_CTL="@CMAKE_INSTALL_FULL_BINDIR@/device-brokerctl"
+
+# TODO: Read Slurm job id.
+# TODO: Call "$DEVICE_BROKER_CTL" revoke-allocations.
+
+exit 0

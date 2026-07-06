@@ -1,0 +1,16 @@
+# TODO: Set the daemon socket.
+socket_path = "@DEVICE_BROKER_RUNTIME_DIR@/device-broker.sock"
+
+# TODO: Set the device library and symbol prefix.
+device_library = ""
+symbol_prefix = ""
+
+# TODO: Set the token used by the configured device.
+device_token = ""
+device_token_size = 0
+
+# TODO: Map Slurm QPU names to device targets.
+[[target]]
+resource = "qpuA"
+base_url = ""
+base_url_size = 0

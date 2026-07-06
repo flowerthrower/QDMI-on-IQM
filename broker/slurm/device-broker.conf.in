@@ -1,0 +1,3 @@
+# TODO: Copy these full paths into slurm.conf or site config management.
+Prolog=@DEVICE_BROKER_SLURM_LIBEXEC_DIR@/device-broker-prolog
+Epilog=@DEVICE_BROKER_SLURM_LIBEXEC_DIR@/device-broker-epilog

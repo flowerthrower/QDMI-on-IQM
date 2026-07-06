@@ -1,0 +1,15 @@
+[Unit]
+Description=Device Broker
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=@CMAKE_INSTALL_FULL_SBINDIR@/device-brokerd --config @DEVICE_BROKER_CONFIG_DIR@/device-broker.toml
+Restart=on-failure
+User=devicebroker
+Group=devicebroker
+RuntimeDirectory=device-broker
+RuntimeDirectoryMode=0750
+
+[Install]
+WantedBy=multi-user.target
