@@ -59,6 +59,7 @@ endif()
 option(BUILD_IQM_QDMI_TESTS "Build tests for the IQM QDMI device"
        ${IQM_QDMI_MASTER_PROJECT})
 option(BUILD_IQM_SPANK "Build the IQM SPANK plugin" OFF)
+option(BUILD_DEVICE_BROKER "Build the device broker daemon" OFF)
 option(BUILD_IQM_QDMI_DOCS "Build documentation for the IQM QDMI device" OFF)
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
 
@@ -76,6 +77,11 @@ endif()
 # Add the SPANK plugin
 if(BUILD_IQM_SPANK)
   add_subdirectory(spank)
+endif()
+
+# Add the device broker daemon
+if(BUILD_DEVICE_BROKER)
+  add_subdirectory(broker)
 endif()
 
 # Add the documentation

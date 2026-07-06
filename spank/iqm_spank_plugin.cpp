@@ -221,6 +221,9 @@ public:
    * @return `ESPANK_SUCCESS` on success, `ESPANK_ERROR` if injection fails.
    */
   [[nodiscard]] int inject_environment(spank_t spank) const {
+    // TODO: Call device-brokerctl get-allocations.
+    // TODO: Set DEVICE_BROKER_SOCKET and DEVICE_BROKER_ALLOCATIONS.
+    // TODO: Do not inject vendor IQM_* auth variables.
     for (std::size_t i = 0; i < K_CONFIG_MAPPINGS.size(); ++i) {
       // Determine effective value: srun option > plugstack default.
       const std::string *effective_value = nullptr;
@@ -276,6 +279,8 @@ public:
    * @return `ESPANK_SUCCESS` if valid, `ESPANK_ERROR` on conflict.
    */
   [[nodiscard]] static int validate_environment(spank_t spank) {
+    // TODO: Validate DEVICE_BROKER_SOCKET and DEVICE_BROKER_ALLOCATIONS.
+    // TODO: Do not require IQM_BASE_URL in the job env.
     const bool has_base_url = env_is_set(spank, "IQM_BASE_URL");
     const bool has_token = env_is_set(spank, "IQM_TOKEN");
     const bool has_tokens_file = env_is_set(spank, "IQM_TOKENS_FILE");

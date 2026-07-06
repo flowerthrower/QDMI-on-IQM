@@ -68,12 +68,15 @@ class IQMBackend(QDMIBackend):
         qc_alias: str | None = None,
     ) -> None:
         """Initialize the IQM Qiskit backend."""
+        # TODO: Read DEVICE_BROKER_SOCKET and DEVICE_BROKER_ALLOCATIONS here.
+        # TODO: Do not read vendor auth in user code.
         resolved_base_url = base_url or os.getenv("IQM_BASE_URL") or "https://resonance.iqm.tech"
         resolved_token = token or os.getenv("IQM_TOKEN")
         resolved_tokens_file = tokens_file or os.getenv("IQM_TOKENS_FILE")
         resolved_qc_id = qc_id or os.getenv("IQM_QC_ID")
         resolved_qc_alias = qc_alias or os.getenv("IQM_QC_ALIAS")
 
+        # TODO: Create a broker-backed device instead.
         device = add_dynamic_device_library(
             library_path=str(IQM_QDMI_LIBRARY_PATH),
             prefix="IQM",
