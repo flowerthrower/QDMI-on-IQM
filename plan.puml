@@ -1,0 +1,192 @@
+@startuml
+title QDMI Broker Sequence Diagram
+
+actor User
+
+participant "Slurm" as Slurm
+participant "Prolog" as Prolog
+participant "SPANK" as SPANK
+participant "Broker Daemon" as Daemon
+database "Allocation Store" as Store
+participant "QDMI Device" as QDMI
+participant "User Job" as Job
+participant "Epilog" as Epilog
+
+
+== Daemon start ==
+
+Daemon -> Daemon: load center config (center_token, token_size, target_map)
+
+Daemon -> QDMI: QDMI_device_initialize()
+
+
+== Allocate sessions ==
+
+User -> Slurm: sbatch --qpu=qpuA,qpuB --licenses=qpuA:1,qpuB:1 job.sh
+
+note left of Slurm
+job.sh contains user code, e.g.
+
+from qiskit import QuantumCircuit, target
+
+target_A = target("qpuA")
+target_B = target("qpuB")
+
+qc_A = QuantumCircuit(2)
+qc_A.cx(0, 1)
+
+qc_B = QuantumCircuit(2)
+qc_B.cx(1, 0)
+
+job_A = target_A.submit(qc_A, shots=1000)
+job_B = target_B.submit(qc_B, shots=1000)
+
+status_A = job_A.status()
+
+result_A = job_A.result()
+result_B = job_B.result()
+end note
+
+Slurm -> Prolog: Prolog=<path>
+
+Prolog -> Daemon: create_allocations(job_id, uid, resources=[qpuA, qpuB])
+
+Daemon -> Daemon: create socket_path for job
+
+loop for resource in [qpuA, qpuB]
+Daemon -> Daemon: generate allocation_id
+
+Daemon -> Daemon: map resource to center_target, target_size
+
+Daemon -> QDMI: QDMI_device_session_alloc(&session)
+
+Daemon -> QDMI: QDMI_device_session_set_parameter(session, \nQDMI_DEVICE_SESSION_PARAMETER_TOKEN, token_size, center_token)
+
+Daemon -> QDMI: QDMI_device_session_set_parameter(session, \nQDMI_DEVICE_SESSION_PARAMETER_BASEURL, target_size, center_target)
+
+Daemon -> QDMI: QDMI_device_session_init(session)
+
+Daemon -> Store: save(allocation_id, job_id, uid, resource, socket_path, session, status=active)
+
+Store --> Daemon: ok
+end
+
+Daemon --> Prolog: socket_path, resource map (qpu -> allocation_id)
+
+
+== Inject env ==
+
+Slurm -> SPANK: slurm_spank_task_init(sp, ac, argv)
+
+SPANK -> Daemon: get_allocations(job_id, uid)
+
+Daemon --> SPANK: socket_path, resource map (qpu -> allocation_id)
+
+SPANK -> SPANK: spank_setenv(sp, "BROKER_SOCKET", socket_path, 1)
+
+SPANK -> SPANK: spank_setenv(sp, "ALLOCATIONS", "qpuA=allocation_id_A;qpuB=allocation_id_B", 1)
+
+Slurm -> Job: execve(path, argv, envp)
+
+
+== Submit jobs ==
+
+loop for (qpu, qc) in [("qpuA", qc_A), ("qpuB", qc_B)]
+
+Job -> Daemon: target = target(qpu) lazy connect via BROKER_SOCKET, and resolve allocation_id from ALLOCATIONS
+
+Job -> Daemon: job = target.submit(qc, shots=shots)
+
+Daemon -> Store: lookup(allocation_id)
+
+Store --> Daemon: allocation + session
+
+Daemon -> Store: authorize(ucred, allocation_id)
+
+Daemon -> QDMI: QDMI_device_session_create_device_job(session, &device_job)
+
+Daemon -> QDMI: QDMI_device_job_set_parameter(device_job, \nQDMI_DEVICE_JOB_PARAMETER_PROGRAMFORMAT, sizeof(format), &format)
+
+Daemon -> QDMI: QDMI_device_job_set_parameter(device_job, \nQDMI_DEVICE_JOB_PARAMETER_PROGRAM, program_size, program)
+
+Daemon -> QDMI: QDMI_device_job_set_parameter(device_job, \nQDMI_DEVICE_JOB_PARAMETER_SHOTSNUM, sizeof(size_t), &shots)
+
+Daemon -> QDMI: QDMI_device_job_submit(device_job)
+
+Daemon -> Daemon: generate task_id
+
+Daemon -> Store: save_task(allocation_id, task_id, device_job)
+
+Store --> Daemon: ok
+
+Daemon --> Job: task_id stored in job
+end
+
+
+== Check status ==
+
+Job -> Daemon: job_A.status()
+
+Daemon -> Store: lookup_task(allocation_id_A, task_id_A)
+
+Store --> Daemon: allocation + device_job
+
+Daemon -> Store: authorize(SO_PEERCRED(fd), allocation_id, task_id)
+
+Daemon -> QDMI: QDMI_device_job_check(device_job, &status)
+
+Daemon --> Job: status_A
+
+
+== Get result ==
+
+loop for job in [job_A, job_B]
+Job -> Daemon: result = job.result()
+
+Daemon -> Store: lookup_task(allocation_id, task_id)
+
+Store --> Daemon: allocation + device_job
+
+Daemon -> Store: authorize(SO_PEERCRED(fd), allocation_id, task_id)
+
+Daemon -> QDMI: QDMI_device_job_get_results(device_job, \nQDMI_JOB_RESULT_SHOTS, result_size, result, nullptr)
+
+QDMI --> Daemon: result
+
+Daemon --> Job: result
+end
+
+
+== Cleanup ==
+
+Slurm -> Epilog: Epilog=<path>
+
+Epilog -> Daemon: revoke_allocations(job_id)
+
+Daemon -> Store: lookup_active_allocations(job_id)
+
+Store --> Daemon: tracked device_jobs, sessions, allocation_ids
+
+loop for each tracked device_job
+Daemon -> QDMI: QDMI_device_job_free(device_job)
+
+QDMI --> Daemon: void
+end
+
+loop for each session
+Daemon -> QDMI: QDMI_device_session_free(session)
+
+QDMI --> Daemon: void
+end
+
+loop for each allocation_id
+Daemon -> Store: revoke(allocation_id)
+
+Store --> Daemon: ok
+end
+
+
+== Daemon stop ==
+
+Daemon -> QDMI: QDMI_device_finalize()
+@enduml
