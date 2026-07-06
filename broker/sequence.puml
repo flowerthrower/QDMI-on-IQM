@@ -1,37 +1,37 @@
 @startuml
-title Broker Sequence Diagram
+title Device Broker Sequence Diagram
 
 actor User
 
 box "Slurm side" #8e9dce
 participant "Slurm" as Slurm
-participant "Prolog\nqdmi-broker-prolog" as Prolog
+participant "Prolog\ndevice-broker-prolog" as Prolog
 participant "SPANK\niqm-spank-plugin" as SPANK
-participant "Epilog\nqdmi-broker-epilog" as Epilog
-participant "qdmi-brokerctl" as BrokerCtl
+participant "Epilog\ndevice-broker-epilog" as Epilog
+participant "device-brokerctl" as BrokerCtl
 end box
 
 participant "User Job\nIQMBackend" as Job
 
 box "Service node"  #7fcac9
-participant "qdmi-brokerd" as Daemon
+participant "device-brokerd" as Daemon
 database "Allocation Store" as Store
-participant "Configured QDMI Device\n(e.g. IQM)" as QDMI
+participant "Configured QDMI Device\n(e.g. IQM)" as Device
 end box
 
 
 == Daemon start ==
 
-Daemon -> Daemon: load broker.toml\n(socket_path, device_library, symbol_prefix, device_token, target_map)
+Daemon -> Daemon: load device-broker.toml\n(socket_path, device_library, symbol_prefix, device_token, target_map)
 
-Daemon -> Daemon: load device_library and resolve symbol_prefix + QDMI symbols
+Daemon -> Daemon: load device_library and resolve symbol_prefix + interface symbols
 
-Daemon -> QDMI: QDMI_device_initialize()
+Daemon -> Device: QDMI_device_initialize()
 
 
 == Submit Slurm job ==
 
-User -> Slurm: sbatch --qpu=qpuA,qpuB --licenses=qpuA:1,qpuB:1 job.sh
+User -> Slurm: sbatch --qpu=qpuA,qpuB job.sh
 
 note left of Slurm
 job.sh contains user code, e.g.
@@ -55,7 +55,7 @@ end note
 
 == Allocate sessions ==
 
-Slurm -> Prolog: Prolog=/usr/libexec/qdmi-broker/qdmi-broker-prolog
+Slurm -> Prolog: Prolog=/usr/libexec/device-broker/device-broker-prolog
 
 Prolog -> BrokerCtl: create-allocations(job_id, uid, resources=[qpuA, qpuB])
 
@@ -68,13 +68,13 @@ Daemon -> Daemon: generate allocation_id
 
 Daemon -> Daemon: map resource to base_url
 
-Daemon -> QDMI: QDMI_device_session_alloc(&session)
+Daemon -> Device: QDMI_device_session_alloc(&session)
 
-Daemon -> QDMI: QDMI_device_session_set_parameter(session,\nQDMI_DEVICE_SESSION_PARAMETER_TOKEN, device_token_size, device_token)
+Daemon -> Device: QDMI_device_session_set_parameter(session,\nQDMI_DEVICE_SESSION_PARAMETER_TOKEN, device_token_size, device_token)
 
-Daemon -> QDMI: QDMI_device_session_set_parameter(session,\nQDMI_DEVICE_SESSION_PARAMETER_BASEURL, base_url_size, base_url)
+Daemon -> Device: QDMI_device_session_set_parameter(session,\nQDMI_DEVICE_SESSION_PARAMETER_BASEURL, base_url_size, base_url)
 
-Daemon -> QDMI: QDMI_device_session_init(session)
+Daemon -> Device: QDMI_device_session_init(session)
 
 Daemon -> Store: save(allocation_id, job_id, uid, resource, socket_path, session, status=active)
 
@@ -102,13 +102,13 @@ Daemon --> BrokerCtl: socket_path, resource map
 
 BrokerCtl --> SPANK: socket_path, resource map
 
-SPANK -> SPANK: spank_setenv(sp, "BROKER_SOCKET", socket_path, 1)
+SPANK -> SPANK: spank_setenv(sp, "DEVICE_BROKER_SOCKET", socket_path, 1)
 
-SPANK -> SPANK: spank_setenv(sp, "ALLOCATIONS", "qpuA=allocation_id_A;qpuB=allocation_id_B", 1)
+SPANK -> SPANK: spank_setenv(sp, "DEVICE_BROKER_ALLOCATIONS", "qpuA=allocation_id_A;qpuB=allocation_id_B", 1)
 
 note right of SPANK
 Broker injects broker-only job env.
-Vendor auth stays inside qdmi-brokerd.
+Vendor auth stays inside device-brokerd.
 end note
 
 Slurm -> Job: execve(path, argv, envp)
@@ -116,7 +116,7 @@ Slurm -> Job: execve(path, argv, envp)
 
 == Submit QDMI jobs ==
 
-Job -> Job: IQMBackend reads BROKER_SOCKET and ALLOCATIONS
+Job -> Job: IQMBackend reads DEVICE_BROKER_SOCKET and DEVICE_BROKER_ALLOCATIONS
 
 loop for each logical QPU job
 Job -> Daemon: submit_job(allocation_id, program, shots)
@@ -127,15 +127,15 @@ Store --> Daemon: allocation + session
 
 Daemon -> Store: authorize(SO_PEERCRED(fd), allocation_id)
 
-Daemon -> QDMI: QDMI_device_session_create_device_job(session, &device_job)
+Daemon -> Device: QDMI_device_session_create_device_job(session, &device_job)
 
-Daemon -> QDMI: QDMI_device_job_set_parameter(device_job,\nQDMI_DEVICE_JOB_PARAMETER_PROGRAMFORMAT, sizeof(format), &format)
+Daemon -> Device: QDMI_device_job_set_parameter(device_job,\nQDMI_DEVICE_JOB_PARAMETER_PROGRAMFORMAT, sizeof(format), &format)
 
-Daemon -> QDMI: QDMI_device_job_set_parameter(device_job,\nQDMI_DEVICE_JOB_PARAMETER_PROGRAM, program_size, program)
+Daemon -> Device: QDMI_device_job_set_parameter(device_job,\nQDMI_DEVICE_JOB_PARAMETER_PROGRAM, program_size, program)
 
-Daemon -> QDMI: QDMI_device_job_set_parameter(device_job,\nQDMI_DEVICE_JOB_PARAMETER_SHOTSNUM, sizeof(size_t), &shots)
+Daemon -> Device: QDMI_device_job_set_parameter(device_job,\nQDMI_DEVICE_JOB_PARAMETER_SHOTSNUM, sizeof(size_t), &shots)
 
-Daemon -> QDMI: QDMI_device_job_submit(device_job)
+Daemon -> Device: QDMI_device_job_submit(device_job)
 
 Daemon -> Daemon: generate task_id
 
@@ -157,7 +157,7 @@ Store --> Daemon: allocation + device_job
 
 Daemon -> Store: authorize(SO_PEERCRED(fd), allocation_id)
 
-Daemon -> QDMI: QDMI_device_job_check(device_job, &status)
+Daemon -> Device: QDMI_device_job_check(device_job, &status)
 
 Daemon --> Job: status
 
@@ -169,16 +169,16 @@ Store --> Daemon: allocation + device_job
 
 Daemon -> Store: authorize(SO_PEERCRED(fd), allocation_id)
 
-Daemon -> QDMI: QDMI_device_job_get_results(device_job,\nQDMI_JOB_RESULT_SHOTS, result_size, result, nullptr)
+Daemon -> Device: QDMI_device_job_get_results(device_job,\nQDMI_JOB_RESULT_SHOTS, result_size, result, nullptr)
 
-QDMI --> Daemon: result
+Device --> Daemon: result
 
 Daemon --> Job: result
 
 
 == Cleanup ==
 
-Slurm -> Epilog: Epilog=/usr/libexec/qdmi-broker/qdmi-broker-epilog
+Slurm -> Epilog: Epilog=/usr/libexec/device-broker/device-broker-epilog
 
 Epilog -> BrokerCtl: revoke-allocations(job_id)
 
@@ -189,15 +189,15 @@ Daemon -> Store: lookup_active_allocations(job_id)
 Store --> Daemon: tracked device_jobs, sessions, allocation_ids
 
 loop for each tracked device_job
-Daemon -> QDMI: QDMI_device_job_free(device_job)
+Daemon -> Device: QDMI_device_job_free(device_job)
 
-QDMI --> Daemon: void
+Device --> Daemon: void
 end
 
 loop for each session
-Daemon -> QDMI: QDMI_device_session_free(session)
+Daemon -> Device: QDMI_device_session_free(session)
 
-QDMI --> Daemon: void
+Device --> Daemon: void
 end
 
 loop for each allocation_id
@@ -213,5 +213,5 @@ BrokerCtl --> Epilog: ok
 
 == Daemon stop ==
 
-Daemon -> QDMI: QDMI_device_finalize()
+Daemon -> Device: QDMI_device_finalize()
 @enduml

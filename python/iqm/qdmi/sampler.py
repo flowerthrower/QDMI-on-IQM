@@ -49,6 +49,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("--shots", type=int, required=True, help="Number of shots to run the circuit.")
     parser.add_argument("--timeout", type=int, help="Timeout passed to the IQM Backend in seconds.", default=300)
     parser.add_argument("--simulator", action="store_true", help="Use the simulator instead of the actual backend.")
+    # TODO: Remove direct vendor connection options when IQMBackend uses device broker env.
     parser.add_argument("--base-url", type=str, dest="base_url", help="IQM server base URL.", default=None)
     parser.add_argument("--tokens-file", type=str, help="IQM tokens file for authentication.", default=None)
     parser.add_argument("--qc-id", type=str, dest="qc_id", help="Quantum computer ID to use.", default=None)
@@ -69,6 +70,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         backend = QDMIProvider().get_backend("MQT Core DDSIM QDMI Device")
         sampler = QDMISampler(backend)
     else:
+        # TODO: Let IQMBackend use DEVICE_BROKER_* env instead of vendor args.
         backend = IQMBackend(
             base_url=args.base_url,
             tokens_file=args.tokens_file,

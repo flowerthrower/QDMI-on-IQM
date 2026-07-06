@@ -94,6 +94,7 @@ struct Config_mapping {
 };
 
 /// All recognized configuration entries and their mappings.
+// TODO: Replace direct vendor env mappings with device-broker lookup inputs.
 constexpr std::array<Config_mapping, 4> K_CONFIG_MAPPINGS = {{
     {.key = "iqm_base_url",
      .env_var = "IQM_BASE_URL",
@@ -183,6 +184,7 @@ public:
    * @return `ESPANK_SUCCESS` on success, `ESPANK_ERROR` on failure.
    */
   int register_options(spank_t spank) {
+    // TODO: Remove --iqm-* options when broker owns vendor config.
     for (std::size_t i = 0; i < K_CONFIG_MAPPINGS.size(); ++i) {
       const auto &mapping = K_CONFIG_MAPPINGS[i];
       // spank_option fields are non-const char* in the Slurm API.
@@ -356,6 +358,7 @@ public:
    * @param spank SPANK handle.
    */
   static void check_tokens_file_access(spank_t spank) {
+    // TODO: Remove vendor token-file checks for broker-only job env.
     const auto path = get_spank_env(spank, "IQM_TOKENS_FILE");
     if (!path.has_value()) {
       return;
@@ -380,6 +383,7 @@ public:
    * @param spank SPANK handle.
    */
   static void emit_diagnostics(spank_t spank) {
+    // TODO: Report device-broker env instead of vendor auth state.
     const auto job_id = get_spank_env(spank, "SLURM_JOB_ID");
     const auto partition = get_spank_env(spank, "SLURM_JOB_PARTITION");
 
