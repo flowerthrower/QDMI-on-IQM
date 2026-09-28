@@ -28,9 +28,8 @@ loaded library path, opens the license-selected handle, and submits and
 retrieves eight Bell-state shots through `IQMBackend(device=...)`. It also
 checks the existing PennyLane unsupported-format error: IQM's JSON/QIR formats
 do not have a Core 4.0 PennyLane serializer. Core runs the same workload as a
-non-root user with explicit environment setup and with shared SPANK injection,
-then runs its generic transport checks. The mock requires the unsigned fixture
-credential from the generated token file; the catalogue leaves `auth-file` unset
-to exercise `IQM_TOKENS_FILE`.
+non-root user with explicit environment setup and with shared SPANK injection.
+The mock requires the unsigned fixture credential from the generated token file;
+the catalogue leaves `auth-file` unset to exercise `IQM_TOKENS_FILE`.
 
 See [IQM on Slurm](../../docs/spank_plugin.md) for deployment and migration.
