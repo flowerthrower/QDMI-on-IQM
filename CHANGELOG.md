@@ -20,6 +20,8 @@ releases may include breaking changes.
 - ✨ Answer `QDMI_DEVICE_PROPERTY_NEEDSCALIBRATION` with zero instead of
   `QDMI_ERROR_NOTSUPPORTED`, since IQM schedules recalibration itself and never
   asks a client to trigger one ([#229]) ([**@marcelwa**])
+- ✨ Catalogue stable IDs for Garnet, Emerald, Sirius, and their mocks, and open
+  them through `IQMBackend(device_id=...)` ([#274]) ([**@burgholzer**]).
 - ✨ Expose calibration submission through the IQM-specific
   `IQM_QDMI_device_job_submit_calibration` function ([#266])
   ([**@burgholzer**]).
@@ -38,6 +40,11 @@ releases may include breaking changes.
 
 ### Changed
 
+- ✨ Discover the installed QDMI manifest without loading provider code and open
+  independent sessions through the MQT Core QDMI driver. Explicit device
+  selection takes precedence over environment defaults. Temporary Core source
+  pins and LLVM/MLIR CI setup remain until a suitable release ([#274])
+  ([**@burgholzer**]).
 - 👷 Enable testing on Python 3.15 ([#291]) ([**@denialhaag**])
 - 💥 Drop the QDMI calibration advisory property. IQM schedules recalibration
   itself and does not require clients to trigger it ([#229], [#266])
@@ -283,6 +290,7 @@ Compatible with QDMI `v1.3.0`.
 
 [#291]: https://github.com/iqm-finland/QDMI-on-IQM/pull/291
 [#284]: https://github.com/iqm-finland/QDMI-on-IQM/pull/284
+[#274]: https://github.com/iqm-finland/QDMI-on-IQM/pull/274
 [#273]: https://github.com/iqm-finland/QDMI-on-IQM/pull/273
 [#271]: https://github.com/iqm-finland/QDMI-on-IQM/pull/271
 [#268]: https://github.com/iqm-finland/QDMI-on-IQM/pull/268
