@@ -363,8 +363,8 @@ Set one or more programs in a common format with
 it must be positive and defaults to one. The device adds the session calibration
 set ID.
 
-Optional IQM RunRequest fields go in a JSON object with exactly one trailing NUL
-byte in
+Optional IQM `CircuitJobDefinition` fields go in a JSON object with exactly one
+trailing NUL byte in
 {cpp:enumerator}`~QDMI_DEVICE_JOB_PARAMETER_T::QDMI_DEVICE_JOB_PARAMETER_CUSTOM1`:
 
 ```cpp
@@ -380,14 +380,13 @@ server defaults. The device validates the JSON object and reserves `circuits`,
 `shots`, and `calibration_set_id` for the programs, shot count, and session
 configuration. The IQM service defines the supported optional fields and values
 in its
-[RunRequest model](https://docs.iqm.tech/iqm-station-control-client/api/iqm.station_control.interface.models.circuit.PostJobsRequest.html).
+[`PostJobsRequest` model](https://docs.iqm.tech/iqm-station-control-client/api/iqm.station_control.interface.models.circuit.PostJobsRequest.html).
 Calibration jobs use a separate request format.
 
-For jobs using `heralding_mode="zeros"`, IQM may discard shots. Histogram
-results contain the retained counts. Reading `QDMI_JOB_RESULT_SHOTS` from a
-locally submitted job requires the requested number of shots and fails if any
-were discarded. Use histogram results for these jobs; the Qiskit interface
-currently requires the requested shot count for both counts and memory.
+Execution requires the requested number of shots. Omit `heralding_mode` or use
+`"none"`. Setting the shot-discarding `"zeros"` mode returns
+`QDMI_ERROR_NOTSUPPORTED`; rejected options leave the job's current settings
+intact.
 
 After submission,
 {cpp:enumerator}`~QDMI_DEVICE_JOB_PROPERTY_T::QDMI_DEVICE_JOB_PROPERTY_QUEUEPOSITION`

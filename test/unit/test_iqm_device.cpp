@@ -1778,7 +1778,7 @@ TEST_F(DeviceJobMockTest, ProgramListReplacementIsAtomic) {
 TEST_F(DeviceJobMockTest, RunRequestOptionsReplaceAtomically) {
   constexpr auto initial = R"({"active_reset_cycles":2})";
   constexpr auto options =
-      R"({"dd_mode":"enabled","qubit_mapping":[{"logical_name":"alice","physical_name":"QB1"}],"future_server_field":{"nested":[1,true]}})";
+      R"({"heralding_mode":"none","dd_mode":"enabled","qubit_mapping":[{"logical_name":"alice","physical_name":"QB1"}],"future_server_field":{"nested":[1,true]}})";
   for (const auto *value : {initial, options}) {
     ASSERT_EQ(
         IQM_QDMI_device_job_set_parameter(
@@ -1805,6 +1805,12 @@ TEST_F(DeviceJobMockTest, RunRequestOptionsReplaceAtomically) {
                 job, QDMI_DEVICE_JOB_PARAMETER_CUSTOM1, unterminated.size(),
                 unterminated.data()),
             QDMI_ERROR_INVALIDARGUMENT);
+  constexpr auto heralded = R"({"heralding_mode":"zeros"})";
+  EXPECT_EQ(IQM_QDMI_device_job_set_parameter(job,
+                                              QDMI_DEVICE_JOB_PARAMETER_CUSTOM1,
+                                              strlen(heralded) + 1, heralded),
+            QDMI_ERROR_NOTSUPPORTED);
+  EXPECT_TRUE(http_stub.post_bodies().empty());
   constexpr auto second = R"({"name":"second","instructions":[]})";
   const std::array<const void *, 2> programs{TEST_CIRCUIT_IQM_JSON, second};
   const std::array sizes{strlen(TEST_CIRCUIT_IQM_JSON) + 1, strlen(second) + 1};

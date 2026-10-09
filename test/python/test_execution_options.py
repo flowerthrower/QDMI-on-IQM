@@ -60,6 +60,7 @@ def backend(monkeypatch: pytest.MonkeyPatch) -> tuple[IQMBackend, Mock]:
         {"calibration_set_id": "other"},
         {"nested": object()},
         {"nested": float("nan")},
+        {"heralding_mode": "zeros"},
     ],
 )
 def test_reject_invalid_run_request_options(backend: tuple[IQMBackend, Mock], value: object) -> None:
@@ -68,6 +69,7 @@ def test_reject_invalid_run_request_options(backend: tuple[IQMBackend, Mock], va
     with pytest.raises(CircuitValidationError):
         iqm_backend.run(QuantumCircuit(1), run_request_options=value)
     device.try_submit_job.assert_not_called()
+    device.submit_job.assert_not_called()
 
 
 def test_run_request_defaults_and_overrides(backend: tuple[IQMBackend, Mock]) -> None:
@@ -78,6 +80,7 @@ def test_run_request_defaults_and_overrides(backend: tuple[IQMBackend, Mock]) ->
     circuit.measure(0, 0)
     cases: list[tuple[object, dict[str, Any], object]] = [
         (None, {}, None),
+        ({"heralding_mode": "none"}, {}, {"heralding_mode": "none"}),
         (defaults, {}, defaults),
         (defaults, {"run_request_options": {"active_reset_cycles": 2}}, {"active_reset_cycles": 2}),
         (defaults, {"run_request_options": None}, None),
