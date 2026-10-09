@@ -20,6 +20,9 @@ releases may include breaking changes.
 - ✨ Answer `QDMI_DEVICE_PROPERTY_NEEDSCALIBRATION` with zero instead of
   `QDMI_ERROR_NOTSUPPORTED`, since IQM schedules recalibration itself and never
   asks a client to trigger one ([#229]) ([**@marcelwa**])
+- ✨ Expose calibration submission through the IQM-specific
+  `IQM_QDMI_device_job_submit_calibration` function ([#266])
+  ([**@burgholzer**]).
 - ✨ Slow down before the IQM Server API rate limit blocks the account, waiting
   out the quota window instead of taking a 30-second block.
   `IQM_RATE_LIMIT_THRESHOLD_PERCENT` moves the threshold or turns it off
@@ -36,6 +39,11 @@ releases may include breaking changes.
 ### Changed
 
 - 👷 Enable testing on Python 3.15 ([#291]) ([**@denialhaag**])
+- 💥 Drop the QDMI calibration advisory property. IQM schedules recalibration
+  itself and does not require clients to trigger it ([#229], [#266])
+  ([**@marcelwa**], [**@burgholzer**]).
+- 💥 Drop the QDMI pulse-support property while preserving surviving enum values
+  for binary compatibility ([#266]) ([**@burgholzer**]).
 - 💥 Use native Qiskit primitives with MQT Core 4, preserving genuine shot order
   and using estimator precision `1/64` (4,096 shots per measurement circuit) by
   default ([#246], [#254]) ([**@marcelwa**], [**@denialhaag**])
@@ -47,6 +55,9 @@ releases may include breaking changes.
 
 ### Fixed
 
+- 🩹 Restrict Linux and macOS exports to the QDMI device ABI and IQM
+  calibration, preventing host libcurl interference on Linux and hiding bundled
+  dependencies on macOS ([#284]) ([**@marcelwa**])
 - 🐛 Preserve circuit metadata in IQM JSON serialization, dropping it with a
   warning when it cannot be represented as JSON ([#273]) ([**@marcelwa**])
 - 🩹 Serialize PRX rotation and phase angles in radians using the current IQM
@@ -271,6 +282,7 @@ Compatible with QDMI `v1.3.0`.
 <!-- PR links -->
 
 [#291]: https://github.com/iqm-finland/QDMI-on-IQM/pull/291
+[#284]: https://github.com/iqm-finland/QDMI-on-IQM/pull/284
 [#273]: https://github.com/iqm-finland/QDMI-on-IQM/pull/273
 [#271]: https://github.com/iqm-finland/QDMI-on-IQM/pull/271
 [#268]: https://github.com/iqm-finland/QDMI-on-IQM/pull/268
@@ -280,6 +292,7 @@ Compatible with QDMI `v1.3.0`.
 [#246]: https://github.com/iqm-finland/QDMI-on-IQM/pull/246
 [#232]: https://github.com/iqm-finland/QDMI-on-IQM/pull/232
 [#231]: https://github.com/iqm-finland/QDMI-on-IQM/pull/231
+[#266]: https://github.com/iqm-finland/QDMI-on-IQM/pull/266
 [#229]: https://github.com/iqm-finland/QDMI-on-IQM/pull/229
 [#214]: https://github.com/iqm-finland/QDMI-on-IQM/pull/214
 [#220]: https://github.com/iqm-finland/QDMI-on-IQM/pull/220

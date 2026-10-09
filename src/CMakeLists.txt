@@ -32,6 +32,15 @@ set_target_properties(
   PROPERTIES C_VISIBILITY_PRESET hidden
              CXX_VISIBILITY_PRESET hidden
              VISIBILITY_INLINES_HIDDEN 1)
+configure_qdmi_exports(
+  TARGET
+  ${QDMI_TARGET_NAME}
+  INTERFACE
+  device
+  PREFIX
+  ${QDMI_PREFIX}
+  EXTRA_SYMBOLS
+  IQM_QDMI_device_job_submit_calibration)
 target_sources(
   ${QDMI_TARGET_NAME}
   PUBLIC FILE_SET
@@ -40,8 +49,10 @@ target_sources(
          HEADERS
          BASE_DIRS
          ${CMAKE_CURRENT_BINARY_DIR}/include
+         ${PROJECT_SOURCE_DIR}/include
          FILES
-         ${PUBLIC_HEADER_FILES})
+         ${PUBLIC_HEADER_FILES}
+         ${PROJECT_SOURCE_DIR}/include/iqm_qdmi/calibration.h)
 
 target_link_libraries(
   ${QDMI_TARGET_NAME}
