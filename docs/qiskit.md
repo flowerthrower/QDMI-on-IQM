@@ -109,3 +109,25 @@ print(f"Standard deviations: {data['stds']}")
 The package also exposes the `iqm-sampler` and `iqm-estimator` CLI scripts for
 executing serialized circuits directly from the shell. For more details on these
 utilities and their usage, see the [Python Package Guide](python_package.md).
+
+## Pinning a calibration
+
+Select the calibration before constructing the backend so that the Qiskit target
+and submitted jobs use the same calibrated architecture and metrics:
+
+```python
+backend = IQMBackend(
+    qc_alias="your-device",
+    calibration_set_id="f0fb4be5-e913-4a04-8c94-18d1bd842def",
+)
+```
+
+`backend.calibration_set_id` gives the effective UUID, including a resolved
+server default. Share this UUID and the quantum computer identity with a
+separate execution client, and pass the UUID to its `IQMBackend` constructor. An
+externally compiled circuit does not carry its calibration UUID automatically.
+
+Every backend keeps its calibration for its lifetime, including one resolved
+from the server default. A calibration job returns a new UUID without changing
+the existing backend. Construct a new backend with that UUID to compile and run
+circuits against the new calibration.

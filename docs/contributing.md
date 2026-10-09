@@ -528,8 +528,8 @@ These steps correspond to the initialization sequence described in the
    available.
 3. `GET_STATIC_QUANTUM_ARCHITECTURE`: Retrieves the static architecture (qubits,
    connectivity).
-4. `GET_DYNAMIC_QUANTUM_ARCHITECTURE`: Fetches calibrated gates for the default
-   calibration set.
+4. `GET_DYNAMIC_QUANTUM_ARCHITECTURE`: Fetches calibrated gates for the selected
+   calibration set, or resolves the default when none was selected.
 5. `GET_CALIBRATION_SET_QUALITY_METRICS`: Retrieves quality metrics (T1, T2,
    fidelities) if available.
 6. `COCOS_HEALTH`: Checks whether calibration jobs are supported.
@@ -559,14 +559,6 @@ These steps correspond to the initialization sequence described in the
   `QDMI_DEVICE_JOB_PROPERTY_QUEUEPOSITION` query. The refreshed status and queue
   position are cached together, and a value is returned only while the job is
   queued.
-
-**After Calibration Job Completion:**
-
-When querying results of a calibration job, the implementation automatically:
-
-1. Extracts the new calibration set ID from the job result.
-2. Calls `GET_DYNAMIC_QUANTUM_ARCHITECTURE` with the new calibration set ID.
-3. Calls `GET_CALIBRATION_SET_QUALITY_METRICS` to update quality metrics.
 
 ### API Configuration
 
