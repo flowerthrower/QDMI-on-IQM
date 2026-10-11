@@ -19,7 +19,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 
@@ -27,14 +26,13 @@ from mqt.core.qdmi import builtin_driver as qdmi_driver
 from qiskit.circuit import QuantumCircuit
 from qiskit.compiler import transpile
 
+from iqm.qdmi import IQM_QDMI_LIBRARY_PATH
 from iqm.qdmi.qiskit import IQMBackend
 
 # This workload requests one local device license with a count of one.
 device_id = os.environ["SLURM_JOB_LICENSES"].removesuffix(":1")
 device = qdmi_driver.open_device(device_id)
-catalogue = json.loads(Path(os.environ["MQT_CORE_QDMI_CONFIG_FILE"]).read_text(encoding="utf-8"))
-library = next(entry["library"] for entry in catalogue["qdmi"]["devices"] if entry["id"] == device_id)
-assert str(Path(library).resolve()) in Path("/proc/self/maps").read_text(encoding="utf-8")
+assert str(IQM_QDMI_LIBRARY_PATH.resolve()) in Path("/proc/self/maps").read_text(encoding="utf-8")
 
 backend = IQMBackend(device=device)
 circuit = QuantumCircuit(2)

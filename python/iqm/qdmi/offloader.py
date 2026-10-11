@@ -101,7 +101,7 @@ def _qc_selection_args(qc_id: str | None, qc_alias: str | None) -> list[str]:
     """Build worker options for an explicit per-job quantum computer selection.
 
     Returns:
-        Non-secret target options understood by the existing IQM CLI workers.
+        IQM quantum-computer selection options for the CLI worker.
     """
     args = []
     if qc_id:
@@ -114,10 +114,8 @@ def _qc_selection_args(qc_id: str | None, qc_alias: str | None) -> list[str]:
 def _licenses_arg(licenses: str | None) -> list[str]:
     """Build `srun` options for an optional Slurm license request.
 
-    Slurm licenses are a cluster admin's own capacity-limiting mechanism
-    and are independent of this offloader's explicit QC selection: the caller passes whatever license
-    name(s)/count(s) their site has configured for the target QC, verbatim,
-    as Slurm's own `name[:count][,name[:count]...]` syntax.
+    Forward the site's license names and counts unchanged. The IQM worker
+    selects its quantum computer independently through `qc_id` or `qc_alias`.
 
     Returns:
         List of `srun` options requesting *licenses*, or an empty list if none

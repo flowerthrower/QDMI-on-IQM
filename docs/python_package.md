@@ -146,7 +146,7 @@ always passed as an explicit `--partition`, which takes precedence over it.
 :::{important}
 Use the
 [MQT Core Slurm guide](https://mqt.readthedocs.io/projects/core/en/latest/qdmi/slurm.html)
-for scheduler setup and license-based injection.
+for scheduler setup, device selection, and job submission.
 :::
 
 ### Sizing the Slurm Allocation
@@ -174,10 +174,12 @@ accessible by both the login node and all Slurm compute nodes.
 
 ### Selecting a Quantum Computer per Job
 
-Both functions accept optional `qc_id` and `qc_alias` arguments for a remote
-job. These non-secret selectors are passed to the `iqm-sampler` and
-`iqm-estimator` worker options `--qc-id` and `--qc-alias`. Credentials are
-supplied through the job environment.
+For remote execution (`local=False`), pass an IQM quantum-computer UUID as
+`qc_id` or an IQM alias such as `emerald:mock` as `qc_alias`. These values are
+forwarded to the `iqm-sampler` and `iqm-estimator` workers. When neither is
+provided, the worker uses the [backend's environment defaults](qiskit.md). These
+arguments identify the IQM quantum computer; request its Slurm license
+separately with `licenses`. Credentials come from the job environment.
 
 ### Requesting a Slurm License
 

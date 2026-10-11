@@ -12,9 +12,8 @@ releases may include breaking changes.
 
 ### Added
 
-- 🧪 Test native and wheel installations in Slurm with an authenticated,
-  eight-shot Qiskit job on the Emerald Resonance mock ([#265])
-  ([**@flowerthrower**], [**@burgholzer**]).
+- 🧪 Run an authenticated eight-shot Qiskit job on the Emerald Resonance mock in
+  the shared Slurm cluster ([#265]) ([**@flowerthrower**], [**@burgholzer**]).
 - ✨ Select and pin an IQM calibration before target construction through
   session `CUSTOM4` or `IQMBackend(calibration_set_id=...)`, expose its
   effective UUID, and keep every session on its initial calibration when a
@@ -54,13 +53,8 @@ releases may include breaking changes.
 
 - ⬆️ Pin QDMI v1.4.0 and the matching MQT Core main commit while keeping the
   Core source build temporary until 4.1.0 ([#298]) ([**@burgholzer**]).
-- ♻️ Use MQT Core's shared Slurm cluster example, with one `quantum` partition
-  and one environment for all QDMI device implementations. Slurm licenses
-  schedule access, and the cluster monitors device availability. Build MQT Core
-  inside the cluster image and provide a reviewed-commit Slurm workflow for
-  credentialed fork tests, alongside offline fork CI. Sampler and estimator CLI
-  help is available without initializing the optional Qiskit SDK ([#265])
-  ([**@flowerthrower**], [**@burgholzer**]).
+- ♻️ Use MQT Core's shared Slurm deployment and device-wheel discovery in one
+  environment ([#265]) ([**@flowerthrower**], [**@burgholzer**]).
 - ✨ Discover the installed QDMI manifest without loading provider code and open
   independent sessions through the MQT Core QDMI driver. Explicit device
   selection takes precedence over environment defaults. Temporary Core source
@@ -85,13 +79,13 @@ releases may include breaking changes.
 
 ### Removed
 
-- 💥 Remove the IQM-specific SPANK plugin and its cluster configuration. Slurm
-  exports credentials through the job environment, and applications select
-  devices through the QDMI Client Interface ([#265]) ([**@flowerthrower**],
-  [**@burgholzer**]).
+- 💥 Remove the IQM-specific SPANK plugin and its cluster configuration ([#265])
+  ([**@flowerthrower**], [**@burgholzer**]).
 
 ### Fixed
 
+- 🐛 Show sampler and estimator CLI help without importing the optional Qiskit
+  SDK ([#265]) ([**@flowerthrower**], [**@burgholzer**]).
 - 🐛 Pass the offloader's quantum computer selection to the IQM worker instead
   of a SPANK-specific `srun` option ([#265]) ([**@flowerthrower**],
   [**@burgholzer**]).

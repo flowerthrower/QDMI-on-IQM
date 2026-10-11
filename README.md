@@ -10,7 +10,7 @@
 # QDMI on IQM
 
 [![PyPI](https://img.shields.io/pypi/v/iqm-qdmi?logo=pypi&style=flat-square)](https://pypi.org/project/iqm-qdmi/)
-[![Core Apache 2.0 License](https://img.shields.io/static/v1?logo=Apache&label=Core&message=Apache%202.0&color=informational&style=flat-square)](https://opensource.org/licenses/Apache-2.0)
+[![Apache 2.0 with LLVM exception](https://img.shields.io/static/v1?logo=Apache&label=License&message=Apache%202.0%20with%20LLVM%20exception&color=informational&style=flat-square)](LICENSE)
 [![C++20](https://img.shields.io/static/v1?logo=cplusplus&label=C%2B%2B&message=20&color=informational&style=flat-square)](https://isocpp.org/)
 [![CMake](https://img.shields.io/static/v1?logo=CMake&label=CMake&message=3.24%2B&color=informational&style=flat-square)](https://cmake.org/)
 [![CI](https://img.shields.io/github/actions/workflow/status/iqm-finland/QDMI-on-IQM/CI.yml?branch=main&style=flat-square&logo=github&label=CI)](https://github.com/iqm-finland/QDMI-on-IQM/actions/workflows/CI.yml)

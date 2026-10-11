@@ -14,7 +14,7 @@ concurrency:
 permissions:
   contents: read
 
-# Fork and Dependabot PRs run without cloud credentials.
+# Fork PRs run without upstream cloud credentials.
 jobs:
   change-detection:
     name: 🔍 Change
@@ -33,39 +33,12 @@ jobs:
       additional-cd-files: |
         .dockerignore
         test/slurm/**
-        .github/workflows/slurm*.yml
-
-  offline-tests:
-    name: Native and Python tests (no credentials)
-    if: (github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]'))
-    runs-on: ubuntu-26.04
-    env:
-      CMAKE_BUILD_PARALLEL_LEVEL: 4
-      CTEST_PARALLEL_LEVEL: 4
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Install build dependencies
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-      - name: Run native unit tests
-        run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --target unit_tests
-          ctest --test-dir build/test/unit --output-on-failure
-      - uses: munich-quantum-software/setup-mlir@8d3eae73d0f0196fd30c787d91ebd2018cb6c709 # v1.5.0
-        with:
-          llvm-version: 23.1.2
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-        with:
-          python-version: "3.14"
-      - name: Run Python tests
-        run: uvx nox -s tests-3.14
+        .github/workflows/slurm.yml
 
   cpp-tests-ubuntu:
     name: 🇨 Test 🐧
     needs: change-detection
-    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')) && (fromJSON(needs.change-detection.outputs.run-cpp-tests))
+    if: fromJSON(needs.change-detection.outputs.run-cpp-tests)
     strategy:
       fail-fast: false
       matrix:
@@ -93,7 +66,7 @@ jobs:
   cpp-tests-macos:
     name: 🇨 Test 🍎
     needs: change-detection
-    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')) && (fromJSON(needs.change-detection.outputs.run-cpp-tests))
+    if: github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id && fromJSON(needs.change-detection.outputs.run-cpp-tests)
     strategy:
       fail-fast: false
       matrix:
@@ -115,7 +88,7 @@ jobs:
   cpp-tests-windows:
     name: 🇨 Test 🏁
     needs: change-detection
-    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')) && (fromJSON(needs.change-detection.outputs.run-cpp-tests))
+    if: github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id && fromJSON(needs.change-detection.outputs.run-cpp-tests)
     strategy:
       fail-fast: false
       matrix:
@@ -144,7 +117,7 @@ jobs:
   cpp-install-tests:
     name: 📦 Install
     needs: change-detection
-    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')) && (fromJSON(needs.change-detection.outputs.run-cpp-tests))
+    if: github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id && fromJSON(needs.change-detection.outputs.run-cpp-tests)
     strategy:
       fail-fast: false
       matrix:
@@ -158,7 +131,7 @@ jobs:
   cpp-sanitizers:
     name: 🇨 Sanitizers
     needs: change-detection
-    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')) && (fromJSON(needs.change-detection.outputs.run-cpp-tests))
+    if: github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id && fromJSON(needs.change-detection.outputs.run-cpp-tests)
     uses: $/.github/workflows/cpp-sanitizers.yml
     secrets:
       IQM_TOKEN: ${{ secrets.RESONANCE_API_KEY }}
@@ -166,7 +139,7 @@ jobs:
   cpp-coverage:
     name: 🇨 Coverage
     needs: change-detection
-    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')) && (fromJSON(needs.change-detection.outputs.run-cpp-tests))
+    if: github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id && fromJSON(needs.change-detection.outputs.run-cpp-tests)
     uses: $/.github/workflows/cpp-coverage.yml
     permissions:
       contents: read
@@ -221,7 +194,7 @@ jobs:
   build-wheel:
     name: 🚀 CD
     needs: change-detection
-    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')) && (fromJSON(needs.change-detection.outputs.run-python-tests) || fromJSON(needs.change-detection.outputs.run-cd))
+    if: github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id && (fromJSON(needs.change-detection.outputs.run-python-tests) || fromJSON(needs.change-detection.outputs.run-cd))
     strategy:
       fail-fast: false
       matrix:
@@ -242,7 +215,7 @@ jobs:
   slurm-tests:
     name: 🇸 Test Slurm
     needs: change-detection
-    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')) && (fromJSON(needs.change-detection.outputs.run-cpp-tests) || fromJSON(needs.change-detection.outputs.run-python-tests) || fromJSON(needs.change-detection.outputs.run-cd))
+    if: github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id && (fromJSON(needs.change-detection.outputs.run-cpp-tests) || fromJSON(needs.change-detection.outputs.run-python-tests) || fromJSON(needs.change-detection.outputs.run-cd))
     uses: $/.github/workflows/slurm.yml
     secrets:
       IQM_TOKEN: ${{ secrets.RESONANCE_API_KEY }}
@@ -253,7 +226,6 @@ jobs:
     if: always()
     needs:
       - change-detection
-      - offline-tests
       - cpp-tests-ubuntu
       - cpp-tests-macos
       - cpp-tests-windows
@@ -273,12 +245,8 @@ jobs:
         with:
           allowed-skips: >-
             ${{
-              (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'))
-              && 'offline-tests,' || ''
-            }}
-            ${{
-              (github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]'))
-              && 'cpp-tests-ubuntu,cpp-tests-macos,cpp-tests-windows,cpp-install-tests,cpp-sanitizers,cpp-coverage,build-wheel,slurm-tests,' || ''
+              (github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id)
+              && 'cpp-tests-macos,cpp-tests-windows,cpp-install-tests,cpp-sanitizers,cpp-coverage,build-wheel,slurm-tests,' || ''
             }}
             ${{
               !fromJSON(needs.change-detection.outputs.run-cpp-tests)
